@@ -1,11 +1,11 @@
-package com.example.Test;
+package com.example.beredditclone;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 
-class TestApplicationTests {
+class RedditCloneApplicationTests {
 
 	@Test
 	void contextLoads() {

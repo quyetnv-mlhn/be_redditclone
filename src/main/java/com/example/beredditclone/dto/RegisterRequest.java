@@ -1,4 +1,4 @@
-package com.example.Test.dto;
+package com.example.beredditclone.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
