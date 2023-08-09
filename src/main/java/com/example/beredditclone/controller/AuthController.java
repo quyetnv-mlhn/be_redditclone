@@ -1,5 +1,7 @@
 package com.example.beredditclone.controller;
 
+import com.example.beredditclone.dto.AuthenticationResponse;
+import com.example.beredditclone.dto.LoginRequest;
 import com.example.beredditclone.dto.RegisterRequest;
 import com.example.beredditclone.model.User;
 import com.example.beredditclone.repository.UserRepository;
@@ -32,5 +34,16 @@ public class AuthController {
     public ResponseEntity<String> signup(@RequestBody RegisterRequest registerRequest) {
         authService.signup(registerRequest);
         return new ResponseEntity<>("User Registration Successfully", HttpStatus.OK);
+    }
+
+    @GetMapping("/accountVerification/{token}")
+    public ResponseEntity<String> verifyAccount(@PathVariable String token) {
+        authService.verifyAccount(token);
+        return new ResponseEntity<>("Account activated Successfully", HttpStatus.OK);
+    }
+
+    @PostMapping("/login")
+    public AuthenticationResponse login(@RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
     }
 }
