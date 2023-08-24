@@ -10,19 +10,26 @@ import com.example.beredditclone.model.VerificationToken;
 import com.example.beredditclone.repository.UserRepository;
 import com.example.beredditclone.repository.VerificationTokenRepository;
 import com.example.beredditclone.security.JwtProvider;
+
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.*;
 
 @Service
 @AllArgsConstructor
@@ -78,5 +85,17 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String token = jwtProvider.generateAccessToken(loginRequest.getUsername());
         return new AuthenticationResponse(token, loginRequest.getUsername());
+    }
+
+    @Transactional(readOnly = true)
+    public User getCurrentUser() {
+//        Jwt principal = (Jwt) SecurityContextHolder.
+//                getContext().getAuthentication().getPrincipal();
+//        return userRepository.findByUsername(principal.getIssuerUri())
+//                .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + principal.getIssuerUri()));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + authentication.getName()));
     }
 }
