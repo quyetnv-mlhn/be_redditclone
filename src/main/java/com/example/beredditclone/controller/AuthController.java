@@ -25,6 +25,7 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+
     @GetMapping("")
     List<User> getAllUser() {
         return userRepository.findAll();
