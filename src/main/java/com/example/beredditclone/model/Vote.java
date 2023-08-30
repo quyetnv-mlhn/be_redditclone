@@ -10,6 +10,8 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
+import static jakarta.persistence.GenerationType.SEQUENCE;
+
 
 @Data
 @AllArgsConstructor
@@ -18,7 +20,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Builder
 public class Vote {
     @Id
-    @GeneratedValue(strategy = IDENTITY)
+    @GeneratedValue(strategy = SEQUENCE)
     private Long voteId;
     private VoteType voteType;
     @NotNull

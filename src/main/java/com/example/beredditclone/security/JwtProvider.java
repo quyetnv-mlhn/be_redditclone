@@ -3,9 +3,13 @@ package com.example.beredditclone.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +21,17 @@ import static io.jsonwebtoken.security.Keys.secretKeyFor;
 
 @Service
 public class JwtProvider {
-    private static final long EXPIRE_DURATION = 24 * 60 * 60 * 1000; // 24 hour
+    @Value("${app.jwt.expiration.time}")
+    private long EXPIRE_DURATION;
     @Value("${app.jwt.secret}")
     private String SECRET_KEY;
 
-    public String generateAccessToken(String  username) {
+    public String generateToken(Authentication authentication) {
+        User principal = (User) authentication.getPrincipal();
+        return generateAccessToken(principal.getUsername());
+    }
+
+    public String generateAccessToken(String username) {
         return Jwts.builder()
                 .setSubject(String.format("%s", username))
                 .setIssuer("CodeJava")
@@ -32,9 +42,11 @@ public class JwtProvider {
 
     }
 
+
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtProvider.class);
 
     public boolean validateAccessToken(String token) {
@@ -67,4 +79,7 @@ public class JwtProvider {
                 .getBody();
     }
 
+    public long getJwtExpirationInnMillis() {
+        return EXPIRE_DURATION;
+    }
 }

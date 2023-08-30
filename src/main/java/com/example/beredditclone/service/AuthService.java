@@ -2,6 +2,7 @@ package com.example.beredditclone.service;
 
 import com.example.beredditclone.dto.AuthenticationResponse;
 import com.example.beredditclone.dto.LoginRequest;
+import com.example.beredditclone.dto.RefreshTokenRequest;
 import com.example.beredditclone.dto.RegisterRequest;
 import com.example.beredditclone.exceptions.SpringRedditException;
 import com.example.beredditclone.model.NotificationEmail;
@@ -25,7 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.sql.Ref;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,6 +45,7 @@ public class AuthService {
     private final MailService mailService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
 
     public void signup(RegisterRequest registerRequest) {
         User user = new User();
@@ -62,7 +66,6 @@ public class AuthService {
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(token);
         verificationToken.setUser(user);
-
         verificationTokenRepository.save(verificationToken);
         return token;
     }
@@ -84,16 +87,27 @@ public class AuthService {
         Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String token = jwtProvider.generateAccessToken(loginRequest.getUsername());
-        return new AuthenticationResponse(token, loginRequest.getUsername());
+        return AuthenticationResponse.builder()
+                .authenticationToken(token)
+                .refreshToken(refreshTokenService.generateRefreshToken().getToken())
+                .expiresAt(new Date(System.currentTimeMillis() + jwtProvider.getJwtExpirationInnMillis()).toInstant())
+                .username(loginRequest.getUsername())
+                .build();
+    }
+
+    public AuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken());
+        String token = jwtProvider.generateAccessToken(refreshTokenRequest.getUsername());
+        return AuthenticationResponse.builder()
+                .authenticationToken(token)
+                .refreshToken(refreshTokenRequest.getRefreshToken())
+                .expiresAt(new Date(System.currentTimeMillis() + jwtProvider.getJwtExpirationInnMillis()).toInstant())
+                .username(refreshTokenRequest.getUsername())
+                .build();
     }
 
     @Transactional(readOnly = true)
     public User getCurrentUser() {
-//        Jwt principal = (Jwt) SecurityContextHolder.
-//                getContext().getAuthentication().getPrincipal();
-//        return userRepository.findByUsername(principal.getIssuerUri())
-//                .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + principal.getIssuerUri()));
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + authentication.getName()));
