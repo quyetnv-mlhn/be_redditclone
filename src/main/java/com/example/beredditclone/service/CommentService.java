@@ -9,7 +9,6 @@ import com.example.beredditclone.model.Post;
 import com.example.beredditclone.model.User;
 import com.example.beredditclone.repository.CommentRepository;
 import com.example.beredditclone.repository.PostRepository;
-import com.example.beredditclone.repository.SubredditRepository;
 import com.example.beredditclone.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,9 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -61,5 +58,9 @@ public class CommentService {
                 .stream()
                 .map(commentMapper::mapToDto)
                 .toList();
+    }
+
+    public void deleteComment(Long id) {
+        commentRepository.deleteById(id);
     }
 }

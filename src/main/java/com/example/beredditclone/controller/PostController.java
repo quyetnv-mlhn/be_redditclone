@@ -2,6 +2,8 @@ package com.example.beredditclone.controller;
 
 import com.example.beredditclone.dto.PostRequest;
 import com.example.beredditclone.dto.PostResponse;
+import com.example.beredditclone.exceptions.PostNotFoundException;
+import com.example.beredditclone.exceptions.SubredditNotFoundException;
 import com.example.beredditclone.service.PostService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,5 +46,22 @@ public class PostController {
     @GetMapping(params = "username")
     public ResponseEntity<List<PostResponse>> getPostsByUsername(@RequestParam String username) {
         return status(HttpStatus.OK).body(postService.getPostsByUsername(username));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PostRequest> updatePost(@PathVariable Long id, @RequestBody PostRequest postRequest) {
+        return status(HttpStatus.OK).body(postService.updatePost(id, postRequest));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deletePost(@PathVariable Long id) {
+        try {
+            postService.deletePost(id);
+            return ResponseEntity.status(HttpStatus.OK).body("Post with ID " + id + " has been deleted successfully.");
+        } catch (PostNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the post.");
+        }
     }
 }

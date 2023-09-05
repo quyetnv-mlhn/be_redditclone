@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLOutput;
 import java.util.List;
 
 @RestController
@@ -32,5 +31,11 @@ public class CommentsController {
     public ResponseEntity<List<CommentsDto>> getAllCommentsForUser(@PathVariable String userName) {
 
         return ResponseEntity.status(HttpStatus.OK).body(commentService.getAllCommentForUser(userName));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id) {
+        commentService.deleteComment(id);
+        return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 }

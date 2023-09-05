@@ -2,6 +2,7 @@ package com.example.beredditclone.service;
 
 import com.example.beredditclone.dto.SubredditDto;
 import com.example.beredditclone.exceptions.SpringRedditException;
+import com.example.beredditclone.exceptions.SubredditNotFoundException;
 import com.example.beredditclone.mapper.SubredditMapper;
 import com.example.beredditclone.model.Subreddit;
 import com.example.beredditclone.repository.SubredditRepository;
@@ -43,5 +44,23 @@ public class SubredditService {
         Subreddit subreddit = subredditRepository.findById(id)
                 .orElseThrow(() -> new SpringRedditException("No subreddit found with id: " + id));
         return subredditMapper.mapSubredditToDto(subreddit);
+    }
+
+    @Transactional
+    public SubredditDto updateSubreddit(Long id, SubredditDto subredditDto) {
+        Subreddit subreddit = subredditRepository.findById(id)
+                .orElseThrow(() -> new SubredditNotFoundException("No subreddit found with id: " + id));
+        subredditDto.setId(id);
+        subreddit.setName(subredditDto.getName());
+        subreddit.setDescription(subredditDto.getDescription());
+        subredditRepository.save(subreddit);
+        return subredditDto;
+    }
+
+    @Transactional
+    public void deleteSubreddit(Long id) {
+        Subreddit subreddit = subredditRepository.findById(id)
+                .orElseThrow(() -> new SubredditNotFoundException("No subreddit found with id: " + id));
+        subredditRepository.delete(subreddit);
     }
 }

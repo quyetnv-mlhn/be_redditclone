@@ -5,12 +5,8 @@ import com.example.beredditclone.dto.PostResponse;
 import com.example.beredditclone.exceptions.PostNotFoundException;
 import com.example.beredditclone.exceptions.SubredditNotFoundException;
 import com.example.beredditclone.mapper.PostMapper;
-import com.example.beredditclone.model.Post;
-import com.example.beredditclone.model.Subreddit;
-import com.example.beredditclone.model.User;
-import com.example.beredditclone.repository.PostRepository;
-import com.example.beredditclone.repository.SubredditRepository;
-import com.example.beredditclone.repository.UserRepository;
+import com.example.beredditclone.model.*;
+import com.example.beredditclone.repository.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,12 +27,14 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final VoteRepository voteRepository;
+    private final CommentRepository commentRepository;
 
 
     public void save(PostRequest postRequest) {
         Subreddit subreddit = subredditRepository.findByName(postRequest.getSubredditName())
-                .orElseThrow(()->new SubredditNotFoundException(postRequest.getSubredditName()));
-        User currentUser  = authService.getCurrentUser();
+                .orElseThrow(() -> new SubredditNotFoundException(postRequest.getSubredditName()));
+        User currentUser = authService.getCurrentUser();
         postRepository.save(postMapper.map(postRequest, subreddit, currentUser));
     }
 
@@ -71,5 +69,28 @@ public class PostService {
                 .stream()
                 .map(postMapper::mapToDto)
                 .collect(toList());
+    }
+
+    @Transactional
+    public PostRequest updatePost(Long id, PostRequest postRequest) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException("No post found with id: " + id));
+        postRequest.setPostId(id);
+        post.setPostName(postRequest.getPostName());
+        post.setUrl(postRequest.getUrl());
+        post.setDescription(postRequest.getDescription());
+        postRepository.save(post);
+        return postRequest;
+    }
+
+    @Transactional
+    public void deletePost(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException("No post found with id: " + id));
+        List<Vote> votes = voteRepository.findByPost(post);
+        List<Comment> comments = commentRepository.findByPost(post);
+        commentRepository.deleteAll(comments);
+        voteRepository.deleteAll(votes);
+        postRepository.delete(post);
     }
 }
